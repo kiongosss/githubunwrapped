@@ -11,11 +11,13 @@ import {
   Star,
   Download,
   Share2,
-  RotateCcw
+  RotateCcw,
+  Video
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { GitHubStats } from '@/types/github'
 import { ShareableCard } from './ShareableCard'
+import { SimpleVideoGenerator } from './SimpleVideoGenerator'
 
 interface UnwrappedResultsProps {
   stats: GitHubStats
@@ -23,6 +25,7 @@ interface UnwrappedResultsProps {
 
 export function UnwrappedResults({ stats }: UnwrappedResultsProps) {
   const [showShareCard, setShowShareCard] = useState(false)
+  const [showVideoGenerator, setShowVideoGenerator] = useState(false)
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -192,11 +195,18 @@ export function UnwrappedResults({ stats }: UnwrappedResultsProps) {
           className="flex flex-col sm:flex-row gap-4 justify-center mt-16"
         >
           <button
-            onClick={() => setShowShareCard(true)}
+            onClick={() => setShowVideoGenerator(true)}
             className="github-button flex items-center justify-center"
           >
+            <Video className="w-5 h-5 mr-2" />
+            Generate Video
+          </button>
+          <button
+            onClick={() => setShowShareCard(true)}
+            className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+          >
             <Share2 className="w-5 h-5 mr-2" />
-            Share Your Unwrapped
+            Share Images
           </button>
           <button
             onClick={handleRestart}
@@ -207,6 +217,14 @@ export function UnwrappedResults({ stats }: UnwrappedResultsProps) {
           </button>
         </motion.div>
       </div>
+
+      {/* Video Generator Modal */}
+      {showVideoGenerator && (
+        <SimpleVideoGenerator 
+          stats={stats} 
+          onClose={() => setShowVideoGenerator(false)} 
+        />
+      )}
 
       {/* Shareable Card Modal */}
       {showShareCard && (
