@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import { X, Video, Download, Play, Pause, RotateCcw, Share2, FileVideo } from 'lucide-react'
 import type { GitHubStats } from '@/types/github'
 import { format } from 'date-fns'
+import { generateInstantVideo } from '@/lib/videoGenerator'
 
 interface SimpleVideoGeneratorProps {
   stats: GitHubStats
@@ -100,99 +101,32 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
   }
 
   const generateAndDownloadVideo = async () => {
-    if (!videoRef.current) return
-
     try {
       setIsGeneratingVideo(true)
       
-      // Create offscreen canvas for video generation
-      const canvas = document.createElement('canvas')
-      canvas.width = 1920
-      canvas.height = 1080
-      const ctx = canvas.getContext('2d')
+      // Generate video instantly using pre-computed data
+      const videoBlob = await generateInstantVideo(stats)
       
-      if (!ctx) {
-        throw new Error('Could not get canvas context')
-      }
-
-      // Create MediaRecorder from canvas stream
-      const stream = canvas.captureStream(30) // 30 FPS
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9'
-      })
-
-      recordedChunks.current = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recordedChunks.current.push(event.data)
-        }
-      }
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks.current, { type: 'video/webm' })
-        downloadVideo(blob)
-        setIsGeneratingVideo(false)
-        setVideoGenerationProgress(0)
-      }
-
-      mediaRecorder.start()
-
-      // Generate video by programmatically creating each frame
-      let currentSceneIndex = 0
-      let frameCount = 0
-      const framesPerScene = (sceneDuration / 1000) * 30 // 30 FPS
-      const totalFrames = scenes.length * framesPerScene
-
-      const generateFrame = async () => {
-        if (frameCount >= totalFrames) {
-          mediaRecorder.stop()
-          return
-        }
-
-        const sceneIndex = Math.floor(frameCount / framesPerScene)
-        const sceneProgress = (frameCount % framesPerScene) / framesPerScene
-        
-        // Update the visible scene for frame capture
-        setCurrentScene(scenes[sceneIndex])
-        setSceneProgress(sceneProgress)
-
-        // Wait a bit for React to update the DOM
-        await new Promise(resolve => setTimeout(resolve, 50))
-
-        // Capture the current frame
-        if (videoRef.current) {
-          const html2canvas = (await import('html2canvas')).default
-          const frameCanvas = await html2canvas(videoRef.current, {
-            backgroundColor: '#0a0a0f',
-            scale: 1,
-            width: 1920,
-            height: 1080,
-            useCORS: true,
-          })
-
-          // Draw frame to recording canvas
-          ctx.clearRect(0, 0, 1920, 1080)
-          ctx.drawImage(frameCanvas, 0, 0, 1920, 1080)
-        }
-
-        frameCount++
-        
-        // Update progress
-        const progress = (frameCount / totalFrames) * 100
-        setVideoGenerationProgress(progress)
-        
-        // Generate next frame
-        setTimeout(generateFrame, 1000 / 30) // 30 FPS
-      }
-
-      // Start generating frames
-      generateFrame()
-
+      // Create downloadable HTML file that plays the animation
+      const htmlContent = await videoBlob.text()
+      const finalBlob = new Blob([htmlContent], { type: 'text/html' })
+      
+      // Download the HTML file
+      const url = URL.createObjectURL(finalBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${stats.user.login}-github-unwrapped-2025.html`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      setIsGeneratingVideo(false)
+      
     } catch (error) {
       console.error('Error generating video:', error)
       setIsGeneratingVideo(false)
-      alert('Video generation failed. Please try the screen recording option instead.')
+      alert('Video generation failed. Please try again.')
     }
   }
 
@@ -814,10 +748,10 @@ The animation will restart automatically for you to record!
             <button
               onClick={generateAndDownloadVideo}
               disabled={isGeneratingVideo}
-              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center min-w-[180px]"
+              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
             >
               <FileVideo className="w-5 h-5 mr-2" />
-              {isGeneratingVideo ? `Generating... ${Math.round(videoGenerationProgress)}%` : 'Download Video'}
+              {isGeneratingVideo ? 'Generating...' : 'Download Video'}
             </button>
             <button
               onClick={onClose}
@@ -852,7 +786,7 @@ The animation will restart automatically for you to record!
             />
           </div>
           <p className="text-xs text-chronos-light-gray text-center">
-            🎬 Click "Download Video" to generate and download your animated presentation • High-quality WebM file perfect for sharing on social media
+            🎬 Click "Download Video" for instant download • Opens in any browser with full animations • Perfect for sharing!
           </p>
         </div>
       </motion.div>
