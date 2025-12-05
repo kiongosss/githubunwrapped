@@ -20,6 +20,7 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
   const [sceneProgress, setSceneProgress] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false)
+  const [videoGenerationProgress, setVideoGenerationProgress] = useState(0)
   const videoRef = useRef<HTMLDivElement>(null)
   const intervalRef = useRef<NodeJS.Timeout>()
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -98,13 +99,13 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
     return canvas.toDataURL('image/png')
   }
 
-  const startVideoRecording = async () => {
+  const generateAndDownloadVideo = async () => {
     if (!videoRef.current) return
 
     try {
       setIsGeneratingVideo(true)
       
-      // Create a canvas to capture the animation
+      // Create offscreen canvas for video generation
       const canvas = document.createElement('canvas')
       canvas.width = 1920
       canvas.height = 1080
@@ -131,52 +132,67 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
       mediaRecorder.onstop = () => {
         const blob = new Blob(recordedChunks.current, { type: 'video/webm' })
         downloadVideo(blob)
-        setIsRecording(false)
         setIsGeneratingVideo(false)
+        setVideoGenerationProgress(0)
       }
 
-      mediaRecorderRef.current = mediaRecorder
       mediaRecorder.start()
-      setIsRecording(true)
 
-      // Restart animation and record it
-      setCurrentScene('intro')
-      setSceneProgress(0)
-      setIsPlaying(true)
+      // Generate video by programmatically creating each frame
+      let currentSceneIndex = 0
+      let frameCount = 0
+      const framesPerScene = (sceneDuration / 1000) * 30 // 30 FPS
+      const totalFrames = scenes.length * framesPerScene
 
-      // Function to capture frames
-      const captureFrame = async () => {
-        if (!videoRef.current) return
+      const generateFrame = async () => {
+        if (frameCount >= totalFrames) {
+          mediaRecorder.stop()
+          return
+        }
 
-        const html2canvas = (await import('html2canvas')).default
-        const frameCanvas = await html2canvas(videoRef.current, {
-          backgroundColor: '#0a0a0f',
-          scale: 1,
-          width: 1920,
-          height: 1080,
-          useCORS: true,
-        })
+        const sceneIndex = Math.floor(frameCount / framesPerScene)
+        const sceneProgress = (frameCount % framesPerScene) / framesPerScene
+        
+        // Update the visible scene for frame capture
+        setCurrentScene(scenes[sceneIndex])
+        setSceneProgress(sceneProgress)
 
-        // Draw the frame to our recording canvas
-        ctx.drawImage(frameCanvas, 0, 0, 1920, 1080)
+        // Wait a bit for React to update the DOM
+        await new Promise(resolve => setTimeout(resolve, 50))
+
+        // Capture the current frame
+        if (videoRef.current) {
+          const html2canvas = (await import('html2canvas')).default
+          const frameCanvas = await html2canvas(videoRef.current, {
+            backgroundColor: '#0a0a0f',
+            scale: 1,
+            width: 1920,
+            height: 1080,
+            useCORS: true,
+          })
+
+          // Draw frame to recording canvas
+          ctx.clearRect(0, 0, 1920, 1080)
+          ctx.drawImage(frameCanvas, 0, 0, 1920, 1080)
+        }
+
+        frameCount++
+        
+        // Update progress
+        const progress = (frameCount / totalFrames) * 100
+        setVideoGenerationProgress(progress)
+        
+        // Generate next frame
+        setTimeout(generateFrame, 1000 / 30) // 30 FPS
       }
 
-      // Capture frames at 30 FPS during the entire animation
-      const frameInterval = setInterval(captureFrame, 1000 / 30)
-
-      // Stop recording after all scenes complete
-      setTimeout(() => {
-        clearInterval(frameInterval)
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop()
-        }
-      }, totalDuration + 1000)
+      // Start generating frames
+      generateFrame()
 
     } catch (error) {
-      console.error('Error recording video:', error)
-      setIsRecording(false)
+      console.error('Error generating video:', error)
       setIsGeneratingVideo(false)
-      alert('Video recording failed. Please try using screen recording software instead.')
+      alert('Video generation failed. Please try the screen recording option instead.')
     }
   }
 
@@ -796,12 +812,12 @@ The animation will restart automatically for you to record!
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={startScreenRecording}
-              disabled={isRecording || isGeneratingVideo}
-              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+              onClick={generateAndDownloadVideo}
+              disabled={isGeneratingVideo}
+              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center min-w-[180px]"
             >
               <FileVideo className="w-5 h-5 mr-2" />
-              {isRecording ? 'Recording...' : 'Download Video'}
+              {isGeneratingVideo ? `Generating... ${Math.round(videoGenerationProgress)}%` : 'Download Video'}
             </button>
             <button
               onClick={onClose}
@@ -836,7 +852,7 @@ The animation will restart automatically for you to record!
             />
           </div>
           <p className="text-xs text-chronos-light-gray text-center">
-            🎬 Click "Download Video" to automatically record and save your animated presentation • High-quality WebM format perfect for sharing
+            🎬 Click "Download Video" to generate and download your animated presentation • High-quality WebM file perfect for sharing on social media
           </p>
         </div>
       </motion.div>
