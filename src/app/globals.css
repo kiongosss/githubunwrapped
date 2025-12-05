@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-chronos-gray;
+  }
+  body {
+    @apply bg-chronos-dark text-white;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .glow-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-chronos-orange to-chronos-green;
+  }
+  
+  .terminal-window {
+    @apply bg-chronos-darker border border-chronos-gray rounded-lg p-6 font-mono;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+  }
+  
+  .stat-card {
+    @apply bg-gradient-to-br from-chronos-blue/20 to-chronos-purple/20 border border-chronos-gray/30 rounded-lg p-6 backdrop-blur-sm;
+    transition: all 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    @apply border-chronos-green/50;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+  }
+  
+  .github-button {
+    @apply bg-gradient-to-r from-chronos-blue to-chronos-purple hover:from-chronos-purple hover:to-chronos-blue text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105;
+    box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3);
+  }
+  
+  .loading-dots {
+    @apply inline-flex space-x-1;
+  }
+  
+  .loading-dots > div {
+    @apply w-2 h-2 bg-chronos-green rounded-full animate-pulse;
+    animation-delay: calc(var(--i) * 0.2s);
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+  }
+}

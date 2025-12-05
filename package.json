@@ -1,0 +1,40 @@
+{
+  "name": "chronos-github-unwrapped",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A minimal GitHub Unwrapped generator - Your coding year in review",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next-auth": "^4.24.5",
+    "@octokit/graphql": "^7.0.2",
+    "framer-motion": "^10.16.16",
+    "html2canvas": "^1.4.1",
+    "date-fns": "^3.0.6",
+    "lucide-react": "^0.303.0",
+    "@upstash/redis": "^1.28.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "@tailwindcss/typography": "^0.5.10"
+  },
+  "keywords": ["github", "unwrapped", "statistics", "coding", "year-in-review"],
+  "author": "Chronos Team",
+  "license": "MIT"
+}
