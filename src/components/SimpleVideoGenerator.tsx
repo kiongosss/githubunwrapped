@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useEffect } from 'react'
-import { X, Video, Download, Play, Pause, RotateCcw, Share2 } from 'lucide-react'
+import { X, Video, Download, Play, Pause, RotateCcw, Share2, FileVideo } from 'lucide-react'
 import type { GitHubStats } from '@/types/github'
 import { format } from 'date-fns'
 
@@ -18,8 +18,12 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
   const [isPlaying, setIsPlaying] = useState(autoPlay)
   const [currentScene, setCurrentScene] = useState<VideoScene>('intro')
   const [sceneProgress, setSceneProgress] = useState(0)
+  const [isRecording, setIsRecording] = useState(false)
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false)
   const videoRef = useRef<HTMLDivElement>(null)
   const intervalRef = useRef<NodeJS.Timeout>()
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordedChunks = useRef<Blob[]>([])
 
   const scenes: VideoScene[] = ['intro', 'total', 'language', 'streak', 'time', 'breakdown', 'busiest', 'outro']
   const sceneDuration = 4000 // 4 seconds per scene
@@ -94,8 +98,167 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
     return canvas.toDataURL('image/png')
   }
 
-  const generateGIF = async () => {
-    alert('GIF generation requires additional libraries. For now, you can use screen recording software to capture the animation, or download individual frames as images.')
+  const startVideoRecording = async () => {
+    if (!videoRef.current) return
+
+    try {
+      setIsGeneratingVideo(true)
+      
+      // Create a canvas to capture the animation
+      const canvas = document.createElement('canvas')
+      canvas.width = 1920
+      canvas.height = 1080
+      const ctx = canvas.getContext('2d')
+      
+      if (!ctx) {
+        throw new Error('Could not get canvas context')
+      }
+
+      // Create MediaRecorder from canvas stream
+      const stream = canvas.captureStream(30) // 30 FPS
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      })
+
+      recordedChunks.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks.current, { type: 'video/webm' })
+        downloadVideo(blob)
+        setIsRecording(false)
+        setIsGeneratingVideo(false)
+      }
+
+      mediaRecorderRef.current = mediaRecorder
+      mediaRecorder.start()
+      setIsRecording(true)
+
+      // Restart animation and record it
+      setCurrentScene('intro')
+      setSceneProgress(0)
+      setIsPlaying(true)
+
+      // Function to capture frames
+      const captureFrame = async () => {
+        if (!videoRef.current) return
+
+        const html2canvas = (await import('html2canvas')).default
+        const frameCanvas = await html2canvas(videoRef.current, {
+          backgroundColor: '#0a0a0f',
+          scale: 1,
+          width: 1920,
+          height: 1080,
+          useCORS: true,
+        })
+
+        // Draw the frame to our recording canvas
+        ctx.drawImage(frameCanvas, 0, 0, 1920, 1080)
+      }
+
+      // Capture frames at 30 FPS during the entire animation
+      const frameInterval = setInterval(captureFrame, 1000 / 30)
+
+      // Stop recording after all scenes complete
+      setTimeout(() => {
+        clearInterval(frameInterval)
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop()
+        }
+      }, totalDuration + 1000)
+
+    } catch (error) {
+      console.error('Error recording video:', error)
+      setIsRecording(false)
+      setIsGeneratingVideo(false)
+      alert('Video recording failed. Please try using screen recording software instead.')
+    }
+  }
+
+  const downloadVideo = (blob: Blob) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${stats.user.login}-github-unwrapped-2025.webm`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const startScreenRecording = async () => {
+    try {
+      // Request screen capture
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 }
+        } as MediaTrackConstraints,
+        audio: false
+      })
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      })
+
+      recordedChunks.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks.current, { type: 'video/webm' })
+        downloadVideo(blob)
+        setIsRecording(false)
+      }
+
+      mediaRecorderRef.current = mediaRecorder
+      mediaRecorder.start()
+      setIsRecording(true)
+
+      // Restart animation for recording
+      setCurrentScene('intro')
+      setSceneProgress(0)
+      setIsPlaying(true)
+
+      // Stop recording after animation completes
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop()
+        }
+        stream.getTracks().forEach(track => track.stop())
+      }, totalDuration + 2000)
+
+    } catch (error) {
+      console.error('Error starting screen recording:', error)
+      
+      // Show helpful instructions for manual recording
+      const instructions = `
+Screen recording not available. Here's how to record manually:
+
+🖥️ Mac: Press Cmd+Shift+5 → Select area → Click Record
+🪟 Windows: Press Win+G → Click Record button  
+🐧 Linux: Use OBS Studio or SimpleScreenRecorder
+
+The animation will restart automatically for you to record!
+      `
+      
+      if (confirm(instructions + '\n\nClick OK to restart the animation for manual recording.')) {
+        // Restart animation for manual recording
+        setCurrentScene('intro')
+        setSceneProgress(0)
+        setIsPlaying(true)
+      }
+    }
   }
 
   const downloadCurrentFrame = async () => {
@@ -631,7 +794,15 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
             </button>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={startScreenRecording}
+              disabled={isRecording || isGeneratingVideo}
+              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+            >
+              <FileVideo className="w-5 h-5 mr-2" />
+              {isRecording ? 'Recording...' : 'Download Video'}
+            </button>
             <button
               onClick={onClose}
               className="bg-chronos-green hover:bg-chronos-green/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
@@ -665,7 +836,7 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
             />
           </div>
           <p className="text-xs text-chronos-light-gray text-center">
-            💡 Tip: Use screen recording (QuickTime on Mac, Windows Game Bar, or OBS) to save this as a video • Click "View Details & Share" for more options
+            🎬 Click "Download Video" to automatically record and save your animated presentation • High-quality WebM format perfect for sharing
           </p>
         </div>
       </motion.div>
