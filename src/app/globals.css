@@ -41,9 +41,68 @@
     @apply inline-flex space-x-1;
   }
   
+  .loading-dots div:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
   .loading-dots > div {
     @apply w-2 h-2 bg-chronos-green rounded-full animate-pulse;
     animation-delay: calc(var(--i) * 0.2s);
+  }
+
+  /* Mobile-specific styles */
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 1.5rem;
+      margin: 0.5rem;
+    }
+    
+    .terminal-window {
+      padding: 1rem;
+      margin: 0 0.5rem;
+    }
+    
+    .github-button {
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+    }
+    
+    .glow-text {
+      font-size: clamp(1.5rem, 5vw, 3rem);
+    }
+  }
+
+  /* Touch-friendly interactions */
+  @media (hover: none) and (pointer: coarse) {
+    .stat-card:hover {
+      transform: none;
+    }
+    
+    .github-button:hover,
+    button:hover {
+      transform: none;
+    }
+    
+    .stat-card:active {
+      transform: scale(0.98);
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+  }
+
+  /* Improved mobile scrolling */
+  @media (max-width: 640px) {
+    body {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+    }
+    
+    .modal-content {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
   }
 }
 

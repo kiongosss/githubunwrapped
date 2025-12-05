@@ -48,24 +48,30 @@ export function UnwrappedResults({ stats }: UnwrappedResultsProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-chronos-dark via-chronos-darker to-chronos-dark">
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.8 }}
+          className="text-center mb-8 sm:mb-12 lg:mb-16"
         >
-          <div className="flex items-center justify-center mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
             <img 
               src={stats.user.avatarUrl} 
               alt={stats.user.name}
-              className="w-16 h-16 rounded-full border-2 border-chronos-green mr-4"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-chronos-green mb-4 sm:mb-0 sm:mr-6"
             />
-            <div>
-              <h1 className="text-4xl font-bold glow-text">
+            <div className="text-center sm:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold glow-text mb-2">
                 {stats.user.name}'s 2025
               </h1>
-              <p className="text-chronos-light-gray">GitHub Unwrapped</p>
+              <p className="text-xl sm:text-2xl text-chronos-light-gray mb-2">
+                GitHub Unwrapped
+              </p>
+              <p className="text-base sm:text-lg text-chronos-light-gray">
+                Your coding year in review
+              </p>
             </div>
           </div>
         </motion.div>
@@ -75,30 +81,30 @@ export function UnwrappedResults({ stats }: UnwrappedResultsProps) {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-8"
+          className="space-y-6 sm:space-y-8"
         >
           {/* Total Contributions */}
           <motion.div variants={itemVariants} className="stat-card text-center">
-            <TrendingUp className="w-12 h-12 text-chronos-orange mx-auto mb-4" />
-            <h2 className="text-5xl font-bold glow-text mb-2">
+            <TrendingUp className="w-10 h-10 sm:w-12 sm:h-12 text-chronos-orange mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold glow-text mb-2">
               {stats.totalContributions.toLocaleString()}
             </h2>
-            <p className="text-xl text-white mb-2">Total Contributions</p>
-            <p className="text-chronos-light-gray">
+            <p className="text-lg sm:text-xl text-white mb-2">Total Contributions</p>
+            <p className="text-sm sm:text-base text-chronos-light-gray">
               Commits, Issues, Pull Requests & Reviews
             </p>
           </motion.div>
 
           {/* Top Language */}
           <motion.div variants={itemVariants} className="stat-card text-center">
-            <Code2 className="w-12 h-12 text-chronos-green mx-auto mb-4" />
-            <h2 className="text-4xl font-bold text-white mb-2">
+            <Code2 className="w-10 h-10 sm:w-12 sm:h-12 text-chronos-green mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
               Your 2025 language is
             </h2>
-            <p className="text-5xl font-bold glow-text mb-2">
+            <p className="text-3xl sm:text-4xl lg:text-5xl font-bold glow-text mb-2">
               {stats.topLanguage.name}
             </p>
-            <p className="text-chronos-light-gray">
+            <p className="text-sm sm:text-base text-chronos-light-gray">
               {stats.topLanguage.percentage}% of your contributions
             </p>
           </motion.div>
@@ -192,25 +198,25 @@ export function UnwrappedResults({ stats }: UnwrappedResultsProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center mt-16"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-8 sm:mt-12 lg:mt-16 px-4"
         >
           <button
             onClick={() => setShowVideoGenerator(true)}
-            className="github-button flex items-center justify-center"
+            className="github-button flex items-center justify-center w-full sm:w-auto text-sm sm:text-base py-3 px-4 sm:px-6"
           >
-            <Video className="w-5 h-5 mr-2" />
+            <Video className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Generate Video
           </button>
           <button
             onClick={() => setShowShareCard(true)}
-            className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+            className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center w-full sm:w-auto text-sm sm:text-base"
           >
-            <Share2 className="w-5 h-5 mr-2" />
+            <Share2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Share Images
           </button>
           <button
             onClick={handleRestart}
-            className="bg-chronos-gray hover:bg-chronos-light-gray text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+            className="bg-chronos-gray hover:bg-chronos-light-gray text-white font-semibold py-3 px-4 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center w-full sm:w-auto text-sm sm:text-base"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
             Generate Another

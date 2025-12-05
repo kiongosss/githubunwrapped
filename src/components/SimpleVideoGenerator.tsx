@@ -775,39 +775,39 @@ The animation will restart automatically for you to record!
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-chronos-darker border border-chronos-gray rounded-lg p-6 max-w-6xl w-full max-h-[95vh] overflow-hidden"
+        className="bg-chronos-darker border border-chronos-gray rounded-lg p-3 sm:p-6 max-w-6xl w-full max-h-[95vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2 flex items-center">
-              <Video className="w-8 h-8 mr-3 text-chronos-green" />
-              {stats.user.name}'s 2025 GitHub Unwrapped
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6">
+          <div className="mb-3 sm:mb-0">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center">
+              <Video className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 text-chronos-green" />
+              <span className="truncate">{stats.user.name}'s 2025 GitHub Unwrapped</span>
             </h2>
-            <p className="text-chronos-light-gray">Your coding year in review - brought to life with stunning animations</p>
+            <p className="text-sm sm:text-base text-chronos-light-gray">Your coding year in review - brought to life with stunning animations</p>
           </div>
           <button
             onClick={onClose}
-            className="text-chronos-light-gray hover:text-white transition-colors"
+            className="text-chronos-light-gray hover:text-white transition-colors self-end sm:self-auto"
           >
-            <X className="w-8 h-8" />
+            <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
         </div>
 
         {/* Video Preview */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <div 
             ref={videoRef}
             className="w-full bg-chronos-dark rounded-lg overflow-hidden"
-            style={{ height: '400px', aspectRatio: '16/9' }}
+            style={{ height: '250px', aspectRatio: '16/9' }}
           >
             <AnimatePresence mode="wait">
               {renderScene()}
@@ -816,46 +816,49 @@ The animation will restart automatically for you to record!
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:items-center sm:justify-between mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <button
               onClick={isPlaying ? handlePause : handlePlay}
-              className="github-button flex items-center justify-center px-6 py-3"
+              className="github-button flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
             >
-              {isPlaying ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+              {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />}
               {isPlaying ? 'Pause' : 'Play'}
             </button>
             <button
               onClick={handleRestart}
-              className="bg-chronos-gray hover:bg-chronos-light-gray text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+              className="bg-chronos-gray hover:bg-chronos-light-gray text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center text-sm sm:text-base"
             >
-              <RotateCcw className="w-5 h-5 mr-2" />
+              <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Restart
             </button>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               onClick={generateAndDownloadVideo}
               disabled={isGeneratingVideo}
-              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+              className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center text-xs sm:text-sm"
             >
-              <FileVideo className="w-5 h-5 mr-2" />
-              {isGeneratingVideo ? `Generating... ${Math.round(videoGenerationProgress)}%` : 'Download Video (WebM)'}
+              <FileVideo className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <span className="hidden sm:inline">{isGeneratingVideo ? `Generating... ${Math.round(videoGenerationProgress)}%` : 'Download Video (WebM)'}</span>
+              <span className="sm:hidden">{isGeneratingVideo ? `Gen... ${Math.round(videoGenerationProgress)}%` : 'Download'}</span>
             </button>
             <button
               onClick={onClose}
-              className="bg-chronos-green hover:bg-chronos-green/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+              className="bg-chronos-green hover:bg-chronos-green/80 text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center text-xs sm:text-sm"
             >
-              <Share2 className="w-5 h-5 mr-2" />
-              View Details & Share
+              <Share2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <span className="hidden sm:inline">View Details & Share</span>
+              <span className="sm:hidden">Details</span>
             </button>
             <button
               onClick={downloadCurrentFrame}
-              className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+              className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 flex items-center justify-center text-xs sm:text-sm"
             >
-              <Download className="w-5 h-5 mr-2" />
-              Save Frame (PNG)
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <span className="hidden sm:inline">Save Frame (PNG)</span>
+              <span className="sm:hidden">Save</span>
             </button>
           </div>
         </div>

@@ -60,23 +60,22 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-chronos-dark via-chronos-darker to-chronos-dark">
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.8 }}
+          className="text-center mb-8 sm:mb-12 lg:mb-16"
         >
-          <div className="flex items-center justify-center mb-6">
-            <Code2 className="w-12 h-12 text-chronos-green mr-4" />
-            <h1 className="text-6xl font-bold glow-text">Chronos</h1>
-          </div>
-          <p className="text-xl text-chronos-light-gray mb-2">
-            Your GitHub Year in Review
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold glow-text mb-4 sm:mb-6">
+            Chronos
+          </h1>
+          <p className="text-xl sm:text-2xl text-chronos-light-gray mb-3 sm:mb-4">
+            GitHub Unwrapped 2025
           </p>
-          <p className="text-chronos-light-gray">
-            Discover your coding journey through 2025 with beautiful visualizations
+          <p className="text-base sm:text-lg text-chronos-light-gray max-w-2xl mx-auto px-4">
+            Discover your coding journey with beautiful visualizations of your GitHub activity
           </p>
         </motion.div>
 
@@ -85,7 +84,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid md:grid-cols-3 gap-6 mb-12"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
         >
           <div className="stat-card text-center">
             <TrendingUp className="w-8 h-8 text-chronos-orange mx-auto mb-4" />
@@ -118,54 +117,54 @@ export default function HomePage() {
           className="text-center"
         >
           {!session ? (
-            <div className="terminal-window max-w-md mx-auto">
+            <div className="terminal-window max-w-md mx-4 sm:mx-auto">
               <div className="flex items-center mb-4">
                 <div className="flex space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 </div>
-                <span className="text-chronos-light-gray text-sm ml-4">chronos:~$</span>
+                <span className="text-chronos-light-gray text-xs sm:text-sm ml-4">chronos:~$</span>
               </div>
               <div className="text-left mb-6">
-                <p className="text-chronos-green mb-2">$ ./generate-unwrapped.sh</p>
-                <p className="text-chronos-light-gray text-sm mb-4">
+                <p className="text-chronos-green mb-2 text-sm sm:text-base">$ ./generate-unwrapped.sh</p>
+                <p className="text-chronos-light-gray text-xs sm:text-sm mb-4">
                   Authentication required to access GitHub API
                 </p>
               </div>
               <button
                 onClick={() => signIn('github')}
-                className="github-button w-full flex items-center justify-center"
+                className="github-button w-full flex items-center justify-center text-sm sm:text-base py-3 px-4"
               >
-                <Github className="w-5 h-5 mr-2" />
+                <Github className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Connect with GitHub
               </button>
             </div>
           ) : (
-            <div className="terminal-window max-w-md mx-auto">
+            <div className="terminal-window max-w-md mx-4 sm:mx-auto">
               <div className="flex items-center mb-4">
                 <div className="flex space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 </div>
-                <span className="text-chronos-light-gray text-sm ml-4">chronos:~$</span>
+                <span className="text-chronos-light-gray text-xs sm:text-sm ml-4">chronos:~$</span>
               </div>
               <div className="text-left mb-6">
-                <p className="text-chronos-green mb-2">$ ./generate-unwrapped.sh</p>
-                <p className="text-chronos-light-gray text-sm mb-2">
+                <p className="text-chronos-green mb-2 text-sm sm:text-base">$ ./generate-unwrapped.sh</p>
+                <p className="text-chronos-light-gray text-xs sm:text-sm mb-2">
                   Connected as: <span className="text-white">{session.user?.name}</span>
                 </p>
-                <p className="text-chronos-light-gray text-sm mb-4">
+                <p className="text-chronos-light-gray text-xs sm:text-sm mb-4">
                   Ready to analyze your 2025 GitHub activity
                 </p>
               </div>
               <button
                 onClick={handleGenerateUnwrapped}
-                className="github-button w-full flex items-center justify-center"
+                className="github-button w-full flex items-center justify-center text-sm sm:text-base py-3 px-4"
                 disabled={isGenerating}
               >
-                <Zap className="w-5 h-5 mr-2" />
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Generate My Unwrapped
               </button>
             </div>
