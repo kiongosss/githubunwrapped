@@ -87,7 +87,7 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
   const captureFrame = async () => {
     if (!videoRef.current) return null
 
-    // Use html2canvas to capture the current frame
+    // Use html2canvas to capture the actual rendered content
     const html2canvas = (await import('html2canvas')).default
     const canvas = await html2canvas(videoRef.current, {
       backgroundColor: '#0a0a0f',
@@ -95,37 +95,120 @@ export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: Simpl
       width: 1920,
       height: 1080,
       useCORS: true,
+      allowTaint: true,
+      foreignObjectRendering: true,
+      logging: false,
     })
 
-    return canvas.toDataURL('image/png')
+    return canvas.toDataURL('image/png', 1.0) // Maximum quality
   }
 
   const generateAndDownloadVideo = async () => {
+    if (!videoRef.current) return
+
     try {
       setIsGeneratingVideo(true)
+      setVideoGenerationProgress(0)
       
-      // Generate video instantly using pre-computed data
-      const videoBlob = await generateInstantVideo(stats)
+      // Create canvas for video recording
+      const canvas = document.createElement('canvas')
+      canvas.width = 1920
+      canvas.height = 1080
+      const ctx = canvas.getContext('2d')
       
-      // Create downloadable HTML file that plays the animation
-      const htmlContent = await videoBlob.text()
-      const finalBlob = new Blob([htmlContent], { type: 'text/html' })
-      
-      // Download the HTML file
-      const url = URL.createObjectURL(finalBlob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${stats.user.login}-github-unwrapped-2025.html`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-      
-      setIsGeneratingVideo(false)
-      
+      if (!ctx) {
+        throw new Error('Could not get canvas context')
+      }
+
+      // Set up MediaRecorder for MP4 output
+      const stream = canvas.captureStream(30) // 30 FPS
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=h264' // Better compatibility
+      })
+
+      recordedChunks.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks.current, { type: 'video/webm' })
+        
+        // Download as MP4-compatible WebM
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${stats.user.login}-github-unwrapped-2025.webm`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        
+        setIsGeneratingVideo(false)
+        setVideoGenerationProgress(0)
+      }
+
+      mediaRecorder.start()
+
+      // Capture actual frames from the DOM
+      let frameCount = 0
+      const framesPerScene = (sceneDuration / 1000) * 30 // 30 FPS
+      const totalFrames = scenes.length * framesPerScene
+
+      const captureRealFrame = async () => {
+        if (frameCount >= totalFrames) {
+          mediaRecorder.stop()
+          return
+        }
+
+        const sceneIndex = Math.floor(frameCount / framesPerScene)
+        const sceneProgress = (frameCount % framesPerScene) / framesPerScene
+        
+        // Update scene for capture
+        setCurrentScene(scenes[sceneIndex])
+        setSceneProgress(sceneProgress)
+
+        // Wait for DOM update
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // Capture the actual rendered content
+        if (videoRef.current) {
+          const html2canvas = (await import('html2canvas')).default
+          const frameCanvas = await html2canvas(videoRef.current, {
+            backgroundColor: '#0a0a0f',
+            scale: 1,
+            width: 1920,
+            height: 1080,
+            useCORS: true,
+            allowTaint: true,
+            foreignObjectRendering: true,
+          })
+
+          // Draw the captured frame to recording canvas
+          ctx.clearRect(0, 0, 1920, 1080)
+          ctx.drawImage(frameCanvas, 0, 0, 1920, 1080)
+        }
+
+        frameCount++
+        
+        // Update progress
+        const progress = (frameCount / totalFrames) * 100
+        setVideoGenerationProgress(progress)
+        
+        // Continue capturing frames
+        setTimeout(captureRealFrame, 1000 / 30) // 30 FPS timing
+      }
+
+      // Start frame capture
+      captureRealFrame()
+
     } catch (error) {
       console.error('Error generating video:', error)
       setIsGeneratingVideo(false)
+      setVideoGenerationProgress(0)
       alert('Video generation failed. Please try again.')
     }
   }
@@ -212,12 +295,19 @@ The animation will restart automatically for you to record!
   }
 
   const downloadCurrentFrame = async () => {
-    const dataUrl = await captureFrame()
-    if (dataUrl) {
-      const link = document.createElement('a')
-      link.download = `${stats.user.login}-${currentScene}-frame.png`
-      link.href = dataUrl
-      link.click()
+    try {
+      const dataUrl = await captureFrame()
+      if (dataUrl) {
+        const link = document.createElement('a')
+        link.download = `${stats.user.login}-${currentScene}-unwrapped-2025.png`
+        link.href = dataUrl
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } catch (error) {
+      console.error('Error capturing frame:', error)
+      alert('Failed to capture frame. Please try again.')
     }
   }
 
@@ -751,7 +841,7 @@ The animation will restart automatically for you to record!
               className="bg-chronos-orange hover:bg-chronos-orange/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
             >
               <FileVideo className="w-5 h-5 mr-2" />
-              {isGeneratingVideo ? 'Generating...' : 'Download Video'}
+              {isGeneratingVideo ? `Generating... ${Math.round(videoGenerationProgress)}%` : 'Download Video (WebM)'}
             </button>
             <button
               onClick={onClose}
@@ -765,7 +855,7 @@ The animation will restart automatically for you to record!
               className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
             >
               <Download className="w-5 h-5 mr-2" />
-              Save Frame
+              Save Frame (PNG)
             </button>
           </div>
         </div>
@@ -786,7 +876,7 @@ The animation will restart automatically for you to record!
             />
           </div>
           <p className="text-xs text-chronos-light-gray text-center">
-            🎬 Click "Download Video" for instant download • Opens in any browser with full animations • Perfect for sharing!
+            🎬 "Download Video" creates real WebM video file with actual content • "Save Frame" captures current scene as high-quality PNG
           </p>
         </div>
       </motion.div>
