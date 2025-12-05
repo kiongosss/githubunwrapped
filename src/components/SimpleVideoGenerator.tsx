@@ -9,12 +9,13 @@ import { format } from 'date-fns'
 interface SimpleVideoGeneratorProps {
   stats: GitHubStats
   onClose: () => void
+  autoPlay?: boolean
 }
 
 type VideoScene = 'intro' | 'total' | 'language' | 'streak' | 'time' | 'breakdown' | 'busiest' | 'outro'
 
-export function SimpleVideoGenerator({ stats, onClose }: SimpleVideoGeneratorProps) {
-  const [isPlaying, setIsPlaying] = useState(false)
+export function SimpleVideoGenerator({ stats, onClose, autoPlay = false }: SimpleVideoGeneratorProps) {
+  const [isPlaying, setIsPlaying] = useState(autoPlay)
   const [currentScene, setCurrentScene] = useState<VideoScene>('intro')
   const [sceneProgress, setSceneProgress] = useState(0)
   const videoRef = useRef<HTMLDivElement>(null)
@@ -586,9 +587,9 @@ export function SimpleVideoGenerator({ stats, onClose }: SimpleVideoGeneratorPro
           <div>
             <h2 className="text-3xl font-bold text-white mb-2 flex items-center">
               <Video className="w-8 h-8 mr-3 text-chronos-green" />
-              Animated Presentation
+              {stats.user.name}'s 2025 GitHub Unwrapped
             </h2>
-            <p className="text-chronos-light-gray">Watch your GitHub Unwrapped come to life with animations</p>
+            <p className="text-chronos-light-gray">Your coding year in review - brought to life with stunning animations</p>
           </div>
           <button
             onClick={onClose}
@@ -632,18 +633,18 @@ export function SimpleVideoGenerator({ stats, onClose }: SimpleVideoGeneratorPro
 
           <div className="flex items-center space-x-4">
             <button
+              onClick={onClose}
+              className="bg-chronos-green hover:bg-chronos-green/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+            >
+              <Share2 className="w-5 h-5 mr-2" />
+              View Details & Share
+            </button>
+            <button
               onClick={downloadCurrentFrame}
               className="bg-chronos-purple hover:bg-chronos-purple/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
             >
               <Download className="w-5 h-5 mr-2" />
               Save Frame
-            </button>
-            <button
-              onClick={generateGIF}
-              className="bg-chronos-green hover:bg-chronos-green/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
-            >
-              <Share2 className="w-5 h-5 mr-2" />
-              Record Screen
             </button>
           </div>
         </div>
@@ -664,7 +665,7 @@ export function SimpleVideoGenerator({ stats, onClose }: SimpleVideoGeneratorPro
             />
           </div>
           <p className="text-xs text-chronos-light-gray text-center">
-            💡 Use screen recording software (QuickTime, OBS, etc.) to capture this animation as a video
+            💡 Tip: Use screen recording (QuickTime on Mac, Windows Game Bar, or OBS) to save this as a video • Click "View Details & Share" for more options
           </p>
         </div>
       </motion.div>

@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Github, Calendar, Code2, TrendingUp, Clock, Zap } from 'lucide-react'
 import { LoadingScreen } from '@/components/LoadingScreen'
 import { UnwrappedResults } from '@/components/UnwrappedResults'
+import { SimpleVideoGenerator } from '@/components/SimpleVideoGenerator'
 import { generateUnwrapped } from '@/lib/github-api'
 import type { GitHubStats } from '@/types/github'
 
@@ -14,6 +15,7 @@ export default function HomePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [stats, setStats] = useState<GitHubStats | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showVideoPresentation, setShowVideoPresentation] = useState(false)
 
   const handleGenerateUnwrapped = async () => {
     if (!session?.accessToken) return
@@ -24,6 +26,8 @@ export default function HomePage() {
     try {
       const unwrappedStats = await generateUnwrapped(session.accessToken as string)
       setStats(unwrappedStats)
+      // Automatically show video presentation after generating stats
+      setShowVideoPresentation(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate your GitHub Unwrapped')
     } finally {
@@ -39,7 +43,18 @@ export default function HomePage() {
     return <LoadingScreen message="Analyzing your GitHub activity..." />
   }
 
-  if (stats) {
+  // Show video presentation first, then allow access to detailed results
+  if (showVideoPresentation && stats) {
+    return (
+      <SimpleVideoGenerator 
+        stats={stats} 
+        onClose={() => setShowVideoPresentation(false)}
+        autoPlay={true}
+      />
+    )
+  }
+
+  if (stats && !showVideoPresentation) {
     return <UnwrappedResults stats={stats} />
   }
 
