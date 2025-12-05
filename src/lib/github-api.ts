@@ -7,8 +7,8 @@ const GITHUB_GRAPHQL_ENDPOINT = 'https://api.github.com/graphql'
 
 // GraphQL query to fetch comprehensive GitHub data
 const GITHUB_STATS_QUERY = `
-  query GitHubStats($login: String!, $from: DateTime!, $to: DateTime!) {
-    user(login: $login) {
+  query GitHubStats($from: DateTime!, $to: DateTime!) {
+    viewer {
       login
       name
       avatarUrl
@@ -48,14 +48,14 @@ const GITHUB_STATS_QUERY = `
 
 // Additional query for commit timing data
 const COMMIT_TIMING_QUERY = `
-  query CommitTiming($login: String!) {
-    user(login: $login) {
+  query CommitTiming {
+    viewer {
       repositories(first: 50, ownerAffiliations: OWNER) {
         nodes {
           defaultBranchRef {
             target {
               ... on Commit {
-                history(first: 100, author: {id: $login}) {
+                history(first: 100) {
                   nodes {
                     committedDate
                     message
@@ -93,12 +93,11 @@ export async function generateUnwrapped(accessToken: string): Promise<GitHubStat
 
     // Fetch main stats
     const response = await graphqlWithAuth(GITHUB_STATS_QUERY, {
-      login: '', // Will be filled by GitHub API based on token
       from: fromDate.toISOString(),
       to: toDate.toISOString(),
     }) as any
 
-    const user = response.user
+    const user = response.viewer
     const contributions = user.contributionsCollection
     const repositories = user.repositories.nodes
 
@@ -123,6 +122,20 @@ export async function generateUnwrapped(accessToken: string): Promise<GitHubStat
     return stats
   } catch (error) {
     console.error('Error generating GitHub Unwrapped:', error)
+    
+    // More specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('Bad credentials')) {
+        throw new Error('Invalid GitHub token. Please try signing in again.')
+      }
+      if (error.message.includes('rate limit')) {
+        throw new Error('GitHub API rate limit exceeded. Please try again later.')
+      }
+      if (error.message.includes('Not Found')) {
+        throw new Error('Unable to access your GitHub data. Please check your permissions.')
+      }
+    }
+    
     throw new Error('Failed to fetch GitHub data. Please check your permissions and try again.')
   }
 }
