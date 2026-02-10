@@ -11,7 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^14.0.4",
+    "next": "14.2.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "next-auth": "^4.24.5",
@@ -34,7 +34,13 @@
     "eslint-config-next": "^14.0.4",
     "@tailwindcss/typography": "^0.5.10"
   },
-  "keywords": ["github", "unwrapped", "statistics", "coding", "year-in-review"],
+  "keywords": [
+    "github",
+    "unwrapped",
+    "statistics",
+    "coding",
+    "year-in-review"
+  ],
   "author": "Chronos Team",
   "license": "MIT"
 }
